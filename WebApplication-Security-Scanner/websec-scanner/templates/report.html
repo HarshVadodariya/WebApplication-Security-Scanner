@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Report - {{ r.target }}{% endblock %}
+{% block content %}
+<p class="nav"><a href="{{ url_for('index') }}">&larr; New scan</a> &middot;
+  <a href="{{ url_for('report_json', rid=rid) }}">Download JSON</a> &middot;
+  <span class="muted">Print &rarr; Save as PDF for a shareable copy</span></p>
+
+<h1>Security Misconfiguration Report</h1>
+<p class="muted">Target <code>{{ r.target }}</code><br>
+  {{ r.finished }} &middot; {{ r.pages_scanned }} pages &middot; {{ r.requests_made }} requests</p>
+
+<section class="cards">
+  {% for s in ['High', 'Medium', 'Low', 'Info'] %}
+  <div class="card sev-{{ s|lower }}"><span class="n">{{ r.counts[s] }}</span>{{ s }}</div>
+  {% endfor %}
+</section>
+
+{% if r.errors %}
+<div class="error"><strong>Scan notes:</strong>
+  <ul>{% for e in r.errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+{% endif %}
+
+{% if not r.by_owasp %}
+<p class="panel">No issues found by these checks. That is not proof the site is secure; see the scope below.</p>
+{% endif %}
+
+{% for g in r.by_owasp %}
+<section class="group">
+  <h2>{{ g.label_2021 }} <span class="tag">{{ g.label_2025 }}</span></h2>
+  {% for f in g.findings %}
+  <article class="finding">
+    <h3><span class="badge sev-{{ f.severity|lower }}">{{ f.severity }}</span> {{ f.title }} <span class="cwe">{{ f.cwe }}</span></h3>
+    <p>{{ f.description }}</p>
+    <p><strong>Fix:</strong> {{ f.recommendation }}</p>
+    <p class="evidence"><strong>Evidence:</strong> <code>{{ f.evidence }}</code></p>
+    <p class="muted">Seen on:
+      {% for u in f.urls[:5] %}<code>{{ u }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+      {% if f.urls|length > 5 %} (+{{ f.urls|length - 5 }} more){% endif %}</p>
+  </article>
+  {% endfor %}
+</section>
+{% endfor %}
+
+<section class="group">
+  <h2>Scope of this scan</h2>
+  <ul>{% for c in r.checks_run %}<li>{{ c }}</li>{% endfor %}</ul>
+  <p class="muted">Passive checks only: GET requests, same host, no logins, no form submission, no exploitation. OWASP mapping is by weakness type; 2025 labels shown beside the 2021 numbering.</p>
+</section>
+{% endblock %}

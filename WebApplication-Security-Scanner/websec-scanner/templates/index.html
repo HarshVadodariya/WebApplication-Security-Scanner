@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Web Application Security Scanner</h1>
+<p class="muted">Checks an authorized site for missing security headers, insecure cookies and exposed directory listings, then produces an OWASP-aligned report.</p>
+
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+
+<form method="post" action="{{ url_for('scan') }}" class="panel">
+  <label for="url">Target URL</label>
+  <input id="url" name="url" type="url" placeholder="https://staging.example.com" value="{{ form.get('url', '') }}" required>
+
+  <label for="max_pages">Max pages to crawl (1-30)</label>
+  <input id="max_pages" name="max_pages" type="number" min="1" max="30" value="{{ form.get('max_pages', 15) }}">
+
+  <label class="check"><input type="checkbox" name="insecure" value="1"> Skip TLS certificate verification (staging with self-signed certs only)</label>
+  <label class="check"><input type="checkbox" name="authorized" value="1" required> I own this application or have written permission to test it.</label>
+
+  <button type="submit">Run scan</button>
+  <p class="muted">A scan makes up to ~60 requests at a polite rate, so it can take 20-40 seconds.</p>
+</form>
+{% endblock %}
